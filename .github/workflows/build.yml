@@ -1,0 +1,35 @@
+---
+name: build
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+    - master
+
+permissions:
+  packages: write
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v2
+      with:
+        registry: ghcr.io
+        password: ${{ secrets.GITHUB_TOKEN }}
+        username: ${{ github.actor }}
+
+    - name: Build and push
+      uses: docker/build-push-action@v4
+      with:
+        tags: ghcr.io/konradasb/docker-kernel-build:${{ github.sha }},ghcr.io/konradasb/docker-kernel-build:latest
+        push: true
+        labels: |
+          org.opencontainers.image.title=docker-kernel-build
+          org.opencontainers.image.description=Docker image with dependencies for building the Linux kernel
